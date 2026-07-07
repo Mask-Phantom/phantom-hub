@@ -35,7 +35,6 @@ window.sendMessage = async function() {
         console.error('Supabase Write Error:', error);
     } else {
         input.value = '';
-        // No manual fetch needed here anymore because Realtime will trigger it
     }
 };
 
@@ -59,16 +58,16 @@ async function fetchMessages() {
     }
 }
 
-// 5. Refined Real-time Subscription Logic
+// 5. Hardened Real-time Subscription
 function setupRealtime() {
     client
-        .channel('public:messages') // Specific channel name
+        .channel('messages_channel')
         .on('postgres_changes', { 
             event: 'INSERT', 
             schema: 'public', 
             table: 'messages' 
         }, payload => {
-            console.log('Realtime event detected:', payload);
+            console.log('Realtime update detected:', payload);
             fetchMessages(); 
         })
         .subscribe((status) => {
@@ -78,7 +77,6 @@ function setupRealtime() {
 
 // 6. Page Load
 window.onload = function() {
-    console.log("Phantom Hub initialized.");
     const lastPage = localStorage.getItem('lastPage') || 'dashboard';
     window.showPage(lastPage);
     fetchMessages();
