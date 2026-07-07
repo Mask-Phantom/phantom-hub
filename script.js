@@ -1,11 +1,13 @@
-// Initialize Supabase
+// 1. Initialize Supabase
 const supabaseUrl = 'https://iisalokmvwfhdjslasyb.supabase.co';
 const supabaseKey = 'sb_publishable_h6Z3Z9pd69v6gGYXAniWYw_51c1dPrH';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-// Navigation Logic
+// 2. Navigation Logic
 function showPage(pageId) {
-    ['dashboard', 'forum', 'certs', 'peers'].forEach(id => {
+    console.log("Navigating to:", pageId);
+    const pages = ['dashboard', 'forum', 'certs', 'peers'];
+    pages.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
@@ -16,28 +18,25 @@ function showPage(pageId) {
     }
 }
 
-// CHAT: Send Message
+// 3. Chat: Send Message
 async function sendMessage() {
     const input = document.getElementById('message-input');
     const content = input.value.trim();
-    
-    if (!content) return; // Don't send empty messages
+    if (!content) return;
 
-    // Try to send to Supabase
     const { error } = await supabase
         .from('messages')
         .insert([{ user_name: 'Operator', content: content }]);
     
     if (error) {
         console.error('Supabase Error:', error);
-        alert("Failed to send message. Check Console.");
     } else {
-        input.value = ''; // Clear input on success
-        fetchMessages(); // Refresh chat immediately
+        input.value = '';
+        fetchMessages();
     }
 }
 
-// CHAT: Fetch messages
+// 4. Chat: Fetch messages
 async function fetchMessages() {
     const { data, error } = await supabase
         .from('messages')
@@ -46,14 +45,19 @@ async function fetchMessages() {
     
     if (!error && data) {
         const chatBox = document.getElementById('chat-box');
-        chatBox.innerHTML = data.map(m => `<div><strong>${m.user_name}:</strong> ${m.content}</div>`).join('');
+        if (chatBox) {
+            chatBox.innerHTML = data.map(m => `<div><strong>${m.user_name}:</strong> ${m.content}</div>`).join('');
+        }
     }
 }
 
+// 5. Page Load & Initial Setup
 window.onload = function() {
+    console.log("Phantom Hub initialized.");
     const lastPage = localStorage.getItem('lastPage') || 'dashboard';
     showPage(lastPage);
+    
+    // Fetch messages initially and keep them live
     fetchMessages();
-    // Refresh chat every 5 seconds
     setInterval(fetchMessages, 5000);
 };
