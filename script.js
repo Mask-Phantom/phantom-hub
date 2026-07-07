@@ -1,23 +1,32 @@
-// Function to show a page and save the state
+// Initialize Supabase
+const supabaseUrl = 'https://iisalokmvwfhdjslasyb.supabase.co';
+const supabaseKey = 'sb_publishable_h6Z3Z9pd69v6gGYXAniWYw_51c1dPrH';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+// Navigation Logic
 function showPage(pageId) {
-    const pages = ['dashboard', 'forum', 'certs', 'peers'];
-    
-    // Hide all pages
-    pages.forEach(id => {
+    ['dashboard', 'forum', 'certs', 'peers'].forEach(id => {
         document.getElementById(id).style.display = 'none';
     });
-
-    // Show the selected page
     document.getElementById(pageId).style.display = 'block';
-
-    // Save to browser's memory
     localStorage.setItem('lastPage', pageId);
 }
 
-// Check memory when the page loads
+// Chat Logic
+async function sendMessage() {
+    const input = document.getElementById('message-input');
+    const content = input.value;
+    if (!content) return;
+
+    const { error } = await supabase
+        .from('messages')
+        .insert([{ user_name: 'Operator', content: content }]);
+    
+    if (error) console.error('Error:', error);
+    else input.value = '';
+}
+
 window.onload = function() {
-    const lastPage = localStorage.getItem('lastPage');
-    if (lastPage) {
-        showPage(lastPage);
-    }
+    const lastPage = localStorage.getItem('lastPage') || 'dashboard';
+    showPage(lastPage);
 };
