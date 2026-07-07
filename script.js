@@ -5,7 +5,6 @@ const client = supabase.createClient(supabaseUrl, supabaseKey);
 
 // 2. Navigation Logic
 window.showPage = function(pageId) {
-    console.log("Navigating to:", pageId);
     const pages = ['dashboard', 'forum', 'certs', 'peers'];
     pages.forEach(id => {
         const el = document.getElementById(id);
@@ -28,7 +27,6 @@ window.sendMessage = async function() {
     const content = input.value.trim();
     if (!content) return;
 
-    // Use the 'client' variable, NOT supabase.createClient()
     const { error } = await client
         .from('messages')
         .insert([{ user_name: currentUser, content: content }]);
@@ -37,13 +35,11 @@ window.sendMessage = async function() {
         console.error('Supabase Error:', error);
     } else {
         input.value = '';
-        fetchMessages();
     }
 };
 
 // 4. Chat: Fetch messages
 async function fetchMessages() {
-    // Use the 'client' variable, NOT supabase.createClient()
     const { data, error } = await client
         .from('messages')
         .select('*')
@@ -58,15 +54,23 @@ async function fetchMessages() {
     }
 }
 
-// 5. Page Load
+// 5. Real-time Subscription Logic
+function setupRealtime() {
+    client
+        .channel('schema-db-changes')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+            fetchMessages(); 
+        })
+        .subscribe();
+}
+
+// 6. Page Load
 window.onload = function() {
     console.log("Phantom Hub initialized.");
     const lastPage = localStorage.getItem('lastPage') || 'dashboard';
     window.showPage(lastPage);
     fetchMessages();
-    
-    // Refresh chat every 5 seconds
-    setInterval(fetchMessages, 5000);
+    setupRealtime(); 
 
     // Enter key support
     const input = document.getElementById('message-input');
