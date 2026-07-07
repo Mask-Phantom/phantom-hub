@@ -1,0 +1,51 @@
+body {
+    background-color: #0a0e14;
+    color: #e0e6ed;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 40px;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.card {
+    background-color: #171f2a;
+    padding: 25px;
+    border: 1px solid #2d3748;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card h3 { color: #63b3ed; margin-top: 0; }
+
+.card button {
+    background: transparent;
+    color: #63b3ed;
+    border: 1px solid #63b3ed;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.card button:hover {
+    background: #63b3ed;
+    color: #0a0e14;
+}
+/* Add to style.css */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Apply to all page containers */
+#dashboard, #forum, #certs, #peers {
+    animation: fadeIn 0.5s ease-in-out;
+}

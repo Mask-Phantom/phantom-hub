@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phantom Hub | Geek Network</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>PHANTOM HUB</h1>
+        <p>Welcome, Operator. [Status: Online]</p>
+    </header>
+
+    <main>
+        <div id="dashboard" class="dashboard">
+            <section class="card">
+                <h3>SECURITY_FORUM</h3>
+                <p>Peer-to-peer technical troubleshooting.</p>
+                <button onclick="showPage('forum')">ENTER_NODE</button>
+            </section>
+
+            <section class="card">
+                <h3>CERT_PATHWAY</h3>
+                <p>Track your verified skill progression.</p>
+                <button onclick="showPage('certs')">ENTER_NODE</button>
+            </section>
+
+            <section class="card">
+                <h3>NODE_SEARCH</h3>
+                <p>Connect with other tech enthusiasts.</p>
+                <button onclick="showPage('peers')">ENTER_NODE</button>
+            </section>
+        </div>
+
+        <div id="forum" style="display: none;">
+    <header>
+        <h2>[SECURE_NODE_ACCESS] // SECURITY_FORUM</h2>
+    </header>
+    
+    <div class="card" style="margin-top: 20px;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="color: #63b3ed; text-align: left;">
+                    <th style="padding: 10px;">TOPIC_ID</th>
+                    <th style="padding: 10px;">THREAD_TITLE</th>
+                    <th style="padding: 10px;">AUTHOR</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-top: 1px solid #2d3748;">
+                    <td style="padding: 10px;">#001</td>
+                    <td style="padding: 10px;">Wazuh Manager: Agent connection issues on Ubuntu</td>
+                    <td style="padding: 10px;">Phantom_Op</td>
+                </tr>
+                <tr style="border-top: 1px solid #2d3748;">
+                    <td style="padding: 10px;">#002</td>
+                    <td style="padding: 10px;">Splunk installation: Path errors in /opt/</td>
+                    <td style="padding: 10px;">Guest_User</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <button onclick="showPage('dashboard')" style="margin-top: 20px;">[RETURN_TO_BASE]</button>
+</div>
+
+        <div id="certs" style="display: none;">
+            <h2>CERTIFICATION PATHWAY</h2>
+            <p>View your progression tree.</p>
+            <button onclick="showPage('dashboard')">[RETURN_TO_BASE]</button>
+        </div>
+
+        <div id="peers" style="display: none;">
+            <h2>NODE SEARCH</h2>
+            <p>Find and connect with peers.</p>
+            <button onclick="showPage('dashboard')">[RETURN_TO_BASE]</button>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
