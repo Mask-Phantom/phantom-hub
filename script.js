@@ -1,5 +1,11 @@
-// Navigation Logic
+// 1. Initialize Supabase ONCE at the top level
+const supabaseUrl = 'https://iisalokmvwfhdjslasyb.supabase.co';
+const supabaseKey = 'sb_publishable_h6Z3Z9pd69v6gGYXAniWYw_51c1dPrH';
+const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+// 2. Navigation Logic
 window.showPage = function(pageId) {
+    console.log("Navigating to:", pageId);
     const pages = ['dashboard', 'forum', 'certs', 'peers'];
     pages.forEach(id => {
         const el = document.getElementById(id);
@@ -16,38 +22,33 @@ window.showPage = function(pageId) {
 let currentUser = localStorage.getItem('username') || prompt("Enter your Operator Call-sign:") || "Guest";
 localStorage.setItem('username', currentUser);
 
-// Chat: Send Message
+// 3. Chat: Send Message
 window.sendMessage = async function() {
-    const supabaseUrl = 'https://iisalokmvwfhdjslasyb.supabase.co';
-    const supabaseKey = 'sb_publishable_h6Z3Z9pd69v6gGYXAniWYw_51c1dPrH';
-    const client = supabase.createClient(supabaseUrl, supabaseKey);
-    
     const input = document.getElementById('message-input');
     const content = input.value.trim();
     if (!content) return;
 
+    // Use the 'client' variable, NOT supabase.createClient()
     const { error } = await client
         .from('messages')
         .insert([{ user_name: currentUser, content: content }]);
     
-    if (error) console.error('Supabase Error:', error);
-    else {
+    if (error) {
+        console.error('Supabase Error:', error);
+    } else {
         input.value = '';
         fetchMessages();
     }
 };
 
-// Chat: Fetch & Auto-scroll
+// 4. Chat: Fetch messages
 async function fetchMessages() {
-    const supabaseUrl = 'https://iisalokmvwfhdjslasyb.supabase.co';
-    const supabaseKey = 'sb_publishable_h6Z3Z9pd69v6gGYXAniWYw_51c1dPrH';
-    const client = supabase.createClient(supabaseUrl, supabaseKey);
-    
+    // Use the 'client' variable, NOT supabase.createClient()
     const { data, error } = await client
         .from('messages')
         .select('*')
         .order('created_at', { ascending: true });
-    
+        
     if (!error && data) {
         const chatBox = document.getElementById('chat-box');
         if (chatBox) {
@@ -57,13 +58,21 @@ async function fetchMessages() {
     }
 }
 
+// 5. Page Load
 window.onload = function() {
-    window.showPage(localStorage.getItem('lastPage') || 'dashboard');
+    console.log("Phantom Hub initialized.");
+    const lastPage = localStorage.getItem('lastPage') || 'dashboard';
+    window.showPage(lastPage);
     fetchMessages();
+    
+    // Refresh chat every 5 seconds
     setInterval(fetchMessages, 5000);
 
     // Enter key support
-    document.getElementById('message-input').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') window.sendMessage();
-    });
+    const input = document.getElementById('message-input');
+    if (input) {
+        input.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') window.sendMessage();
+        });
+    }
 };
