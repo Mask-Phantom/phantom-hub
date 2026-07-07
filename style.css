@@ -1,51 +1,47 @@
 body {
-    background-color: #0a0e14;
+    background-color: #0b141a; /* WhatsApp-like dark background */
     color: #e0e6ed;
     font-family: 'Segoe UI', sans-serif;
-    margin: 40px;
-}
-
-.dashboard {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 25px;
-    margin-top: 30px;
-}
-
-.card {
-    background-color: #171f2a;
-    padding: 25px;
-    border: 1px solid #2d3748;
-    border-radius: 12px;
+    margin: 0;
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    height: 100vh;
 }
 
-.card h3 { color: #63b3ed; margin-top: 0; }
+/* Sidebar */
+#sidebar {
+    width: 300px;
+    background-color: #111b21;
+    border-right: 1px solid #2d3748;
+    padding: 20px;
+}
 
-.card button {
-    background: transparent;
-    color: #63b3ed;
-    border: 1px solid #63b3ed;
-    padding: 10px;
+/* Main Content Area */
+#main-stage {
+    flex-grow: 1;
+    padding: 30px;
+    background: #0b141a;
+    overflow-y: auto;
+}
+
+/* Glass Cards */
+.card {
+    background-color: #1f2c34;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
     cursor: pointer;
-    border-radius: 6px;
-    width: 100%;
-    margin-top: 20px;
+    transition: 0.3s;
 }
 
-.card button:hover {
-    background: #63b3ed;
-    color: #0a0e14;
-}
-/* Add to style.css */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
+.card:hover { background-color: #2a3942; }
 
-/* Apply to all page containers */
-#dashboard, #forum, #certs, #peers {
-    animation: fadeIn 0.5s ease-in-out;
+/* Chat Box Styling */
+#chat-box {
+    height: 70vh;
+    border-radius: 10px;
+    padding: 20px;
+    background: #0b141a;
+    border: 1px solid #202c33;
+    overflow-y: scroll;
+    margin-bottom: 10px;
 }
