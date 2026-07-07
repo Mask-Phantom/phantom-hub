@@ -13,6 +13,7 @@
     </header>
 
     <main>
+        <!-- Main Dashboard -->
         <div id="dashboard" class="dashboard">
             <section class="card">
                 <h3>SECURITY_FORUM</h3>
@@ -33,54 +34,55 @@
             </section>
         </div>
 
+        <!-- Security Forum Section -->
         <div id="forum" style="display: none;">
-    <header>
-        <h2>[SECURE_NODE_ACCESS] // SECURITY_FORUM</h2>
-    </header>
-    
-    <div class="card" style="margin-top: 20px;">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="color: #63b3ed; text-align: left;">
-                    <th style="padding: 10px;">TOPIC_ID</th>
-                    <th style="padding: 10px;">THREAD_TITLE</th>
-                    <th style="padding: 10px;">AUTHOR</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr style="border-top: 1px solid #2d3748;">
-                    <td style="padding: 10px;">#001</td>
-                    <td style="padding: 10px;">Wazuh Manager: Agent connection issues on Ubuntu</td>
-                    <td style="padding: 10px;">Phantom_Op</td>
-                </tr>
-                <tr style="border-top: 1px solid #2d3748;">
-                    <td style="padding: 10px;">#002</td>
-                    <td style="padding: 10px;">Splunk installation: Path errors in /opt/</td>
-                    <td style="padding: 10px;">Guest_User</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    
-    <button onclick="showPage('dashboard')" style="margin-top: 20px;">[RETURN_TO_BASE]</button>
-</div>
+            <header>
+                <h2>[SECURE_NODE_ACCESS] // SECURITY_FORUM</h2>
+            </header>
+            
+            <div class="card" style="margin-top: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="color: #63b3ed; text-align: left;">
+                            <th style="padding: 10px;">TOPIC_ID</th>
+                            <th style="padding: 10px;">THREAD_TITLE</th>
+                            <th style="padding: 10px;">AUTHOR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-top: 1px solid #2d3748;">
+                            <td style="padding: 10px;">#001</td>
+                            <td style="padding: 10px;">Wazuh Manager: Agent connection issues on Ubuntu</td>
+                            <td style="padding: 10px;">Phantom_Op</td>
+                        </tr>
+                        <tr style="border-top: 1px solid #2d3748;">
+                            <td style="padding: 10px;">#002</td>
+                            <td style="padding: 10px;">Splunk installation: Path errors in /opt/</td>
+                            <td style="padding: 10px;">Guest_User</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button onclick="showPage('dashboard')" style="margin-top: 20px;">[RETURN_TO_BASE]</button>
+        </div>
 
+        <!-- Certification Pathway -->
         <div id="certs" style="display: none;">
             <h2>CERTIFICATION PATHWAY</h2>
             <p>View your progression tree.</p>
             <button onclick="showPage('dashboard')">[RETURN_TO_BASE]</button>
         </div>
 
+        <!-- Node Search (Discord Chat) -->
         <div id="peers" style="display: none;">
-    <h2>NODE SEARCH // LIVE_CHAT</h2>
-    <p>Connect with other tech enthusiasts.</p>
-    
-    <!-- Discord Widget -->
-    <iframe src="https://discord.com/widget?id=1523984426898292950&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
-    
-    <br>
-    <button onclick="showPage('dashboard')" style="margin-top: 20px;">[RETURN_TO_BASE]</button>
-</div>
+            <h2>NODE SEARCH // LIVE_CHAT</h2>
+            <p>Connect with other tech enthusiasts.</p>
+            
+            <iframe src="https://discord.com/widget?id=1523984426898292950&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+            
+            <br>
+            <button onclick="showPage('dashboard')" style="margin-top: 20px;">[RETURN_TO_BASE]</button>
+        </div>
     </main>
 
     <script src="script.js"></script>
