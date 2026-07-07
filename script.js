@@ -12,6 +12,10 @@ window.showPage = function(pageId) {
     }
 };
 
+// Set User Identity
+let currentUser = localStorage.getItem('username') || prompt("Enter your Operator Call-sign:") || "Guest";
+localStorage.setItem('username', currentUser);
+
 // Chat: Send Message
 window.sendMessage = async function() {
     const supabaseUrl = 'https://iisalokmvwfhdjslasyb.supabase.co';
@@ -24,7 +28,7 @@ window.sendMessage = async function() {
 
     const { error } = await client
         .from('messages')
-        .insert([{ user_name: 'Operator', content: content }]);
+        .insert([{ user_name: currentUser, content: content }]);
     
     if (error) console.error('Supabase Error:', error);
     else {
@@ -33,7 +37,7 @@ window.sendMessage = async function() {
     }
 };
 
-// Chat: Fetch
+// Chat: Fetch & Auto-scroll
 async function fetchMessages() {
     const supabaseUrl = 'https://iisalokmvwfhdjslasyb.supabase.co';
     const supabaseKey = 'sb_publishable_h6Z3Z9pd69v6gGYXAniWYw_51c1dPrH';
@@ -48,13 +52,18 @@ async function fetchMessages() {
         const chatBox = document.getElementById('chat-box');
         if (chatBox) {
             chatBox.innerHTML = data.map(m => `<div><strong>${m.user_name}:</strong> ${m.content}</div>`).join('');
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
         }
     }
 }
 
 window.onload = function() {
-    const lastPage = localStorage.getItem('lastPage') || 'dashboard';
-    window.showPage(lastPage);
+    window.showPage(localStorage.getItem('lastPage') || 'dashboard');
     fetchMessages();
     setInterval(fetchMessages, 5000);
+
+    // Enter key support
+    document.getElementById('message-input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') window.sendMessage();
+    });
 };
