@@ -35,8 +35,7 @@ window.sendMessage = async function() {
         console.error('Supabase Write Error:', error);
     } else {
         input.value = '';
-        // Force immediate refresh after sending
-        await fetchMessages();
+        // No manual fetch needed here anymore because Realtime will trigger it
     }
 };
 
@@ -51,23 +50,30 @@ async function fetchMessages() {
         const chatBox = document.getElementById('chat-box');
         if (chatBox) {
             chatBox.innerHTML = data.map(m => `
-                <div style="margin-bottom: 10px;">
+                <div style="margin-bottom: 10px; border-bottom: 1px solid #2d3748; padding-bottom: 5px;">
                     <strong>${m.user_name}:</strong> ${m.content}
                 </div>
             `).join('');
-            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
     }
 }
 
-// 5. Real-time Subscription Logic
+// 5. Refined Real-time Subscription Logic
 function setupRealtime() {
     client
-        .channel('schema-db-changes')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+        .channel('public:messages') // Specific channel name
+        .on('postgres_changes', { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'messages' 
+        }, payload => {
+            console.log('Realtime event detected:', payload);
             fetchMessages(); 
         })
-        .subscribe();
+        .subscribe((status) => {
+            console.log('Subscription status:', status);
+        });
 }
 
 // 6. Page Load
@@ -78,7 +84,6 @@ window.onload = function() {
     fetchMessages();
     setupRealtime(); 
 
-    // Enter key support
     const input = document.getElementById('message-input');
     if (input) {
         input.addEventListener('keypress', function (e) {
