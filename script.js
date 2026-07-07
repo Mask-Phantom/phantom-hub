@@ -32,9 +32,11 @@ window.sendMessage = async function() {
         .insert([{ user_name: currentUser, content: content }]);
     
     if (error) {
-        console.error('Supabase Error:', error);
+        console.error('Supabase Write Error:', error);
     } else {
         input.value = '';
+        // Force immediate refresh after sending
+        await fetchMessages();
     }
 };
 
@@ -48,8 +50,12 @@ async function fetchMessages() {
     if (!error && data) {
         const chatBox = document.getElementById('chat-box');
         if (chatBox) {
-            chatBox.innerHTML = data.map(m => `<div><strong>${m.user_name}:</strong> ${m.content}</div>`).join('');
-            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
+            chatBox.innerHTML = data.map(m => `
+                <div style="margin-bottom: 10px;">
+                    <strong>${m.user_name}:</strong> ${m.content}
+                </div>
+            `).join('');
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to bottom
         }
     }
 }
