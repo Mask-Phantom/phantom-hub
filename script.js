@@ -12,7 +12,7 @@ function showPage(pageId) {
     localStorage.setItem('lastPage', pageId);
 }
 
-// Chat Logic
+// Chat: Send Message
 async function sendMessage() {
     const input = document.getElementById('message-input');
     const content = input.value;
@@ -22,11 +22,29 @@ async function sendMessage() {
         .from('messages')
         .insert([{ user_name: 'Operator', content: content }]);
     
-    if (error) console.error('Error:', error);
-    else input.value = '';
+    if (error) console.error('Error sending:', error);
+    else input.value = ''; // Clear input
 }
+
+// Chat: Fetch and display messages
+async function fetchMessages() {
+    const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: true });
+    
+    if (error) console.error('Error fetching:', error);
+    else {
+        const chatBox = document.getElementById('chat-box');
+        chatBox.innerHTML = data.map(m => `<div><strong>${m.user_name}:</strong> ${m.content}</div>`).join('');
+    }
+}
+
+// Reload chat every 3 seconds to keep it "live"
+setInterval(fetchMessages, 3000);
 
 window.onload = function() {
     const lastPage = localStorage.getItem('lastPage') || 'dashboard';
     showPage(lastPage);
+    fetchMessages();
 };
