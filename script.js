@@ -1,6 +1,6 @@
 // 1. Configuration
 const SUPABASE_URL = 'https://iisalokmvwfhdjslasyb.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpc2Fsb2ttdndmaGRqc2xhc3liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0MTU4ODAsImV4cCI6MjA5ODk5MTg4MH0.ggtS6Sv8UTmB90ET8Nj8ZmpAMzM7nsz4Nb23FzEOwXI'; // Ensure your active key is here
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpc2Fsb2ttdndmaGRqc2xhc3liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0MTU4ODAsImV4cCI6MjA5ODk5MTg4MH0.ggtS6Sv8UTmB90ET8Nj8ZmpAMzM7nsz4Nb23FzEOwXI'; // Insert your key here
 
 // 2. State & Initialization
 let db;
@@ -14,28 +14,23 @@ function initSupabase() {
     }
 }
 
-// 3. Authentication Logic
+// 3. Authentication & Profile Logic
 window.signUpUser = async (email, password, username, fullName, roleTag) => {
     if (!db) return;
     try {
-        // We pass the extra profile data into the user's metadata so the SQL Trigger can catch it
         const { data, error } = await db.auth.signUp({
             email: email,
             password: password,
             options: {
                 data: {
-                    username: username,
+                    username: username || 'phantom_user',
                     full_name: fullName,
                     role_tag: roleTag
                 }
             }
         });
-        
         if (error) throw error;
-
-        // Notify the user that they must verify their email
-        alert("Registration successful! Please check your email to confirm your account before logging in.");
-        
+        alert("Registration successful! Please check your email to confirm your account.");
     } catch (err) {
         console.error('Registration failed:', err.message);
         alert('Registration failed: ' + err.message);
@@ -45,10 +40,7 @@ window.signUpUser = async (email, password, username, fullName, roleTag) => {
 window.logInUser = async (email, password) => {
     if (!db) return;
     try {
-        const { data, error } = await db.auth.signInWithPassword({
-            email,
-            password,
-        });
+        const { data, error } = await db.auth.signInWithPassword({ email, password });
         if (error) throw error;
         console.log('Logged in successfully!');
     } catch (err) {
@@ -60,22 +52,83 @@ window.logInUser = async (email, password) => {
 window.logOutUser = async () => {
     if (!db) return;
     try {
-        const { error } = await db.auth.signOut();
-        if (error) throw error;
+        await db.auth.signOut();
         currentUser = null;
-        console.log('Logged out successfully.');
         toggleUI(false);
     } catch (err) {
         console.error('Logout failed:', err.message);
     }
 };
 
-// Monitor Auth Session Changes
+// Handle Avatar Image Upload with Security Restrictions
+window.uploadAvatar = async (event) => {
+    const file = event.target.files[0];
+    if (!file || !currentUser) return;
+
+    // --- SECURITY CHECKS ---
+    const MAX_SIZE = 2 * 1024 * 1024; // 2MB in bytes
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+        alert('Invalid format. Please upload a JPEG, PNG, WEBP, or GIF.');
+        // Reset the file input so they can try again
+        event.target.value = ''; 
+        return;
+    }
+
+    if (file.size > MAX_SIZE) {
+        alert('File is too large. Please select an image under 2MB.');
+        event.target.value = '';
+        return;
+    }
+    // --- END SECURITY CHECKS ---
+
+    try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${currentUser.id}-${Math.random()}.${fileExt}`;
+
+        // 1. Upload to the 'avatars' bucket
+        const { error: uploadError } = await db.storage
+            .from('avatars')
+            .upload(fileName, file);
+            
+        if (uploadError) throw uploadError;
+
+        // 2. Get the public URL for the image
+        const { data } = db.storage.from('avatars').getPublicUrl(fileName);
+        const publicUrl = data.publicUrl;
+
+        // 3. Update the user's profile table with the new URL
+        const { error: updateError } = await db.from('profiles')
+            .update({ avatar_url: publicUrl })
+            .eq('id', currentUser.id);
+
+        if (updateError) throw updateError;
+
+        // 4. Update the UI
+        document.getElementById('sidebar-avatar').src = publicUrl;
+        loadMessages(); 
+        
+    } catch (err) {
+        console.error('Avatar upload failed:', err.message);
+        alert('Failed to upload profile picture.');
+    } finally {
+        // Clear the input so the same file can be uploaded again if needed
+        event.target.value = '';
+    }
+};
+
 function setupAuthListener() {
-    db.auth.onAuthStateChange((event, session) => {
+    db.auth.onAuthStateChange(async (event, session) => {
         if (session && session.user) {
             currentUser = session.user;
             toggleUI(true);
+            
+            const { data } = await db.from('profiles').select('avatar_url').eq('id', currentUser.id).single();
+            if (data && data.avatar_url) {
+                document.getElementById('sidebar-avatar').src = data.avatar_url;
+            }
+            
             loadMessages();
         } else {
             currentUser = null;
@@ -84,7 +137,6 @@ function setupAuthListener() {
     });
 }
 
-// UI Toggling depending on Auth State
 function toggleUI(isLoggedIn) {
     const authContainer = document.getElementById('auth-container');
     const chatContainer = document.getElementById('chat-container');
@@ -96,7 +148,8 @@ function toggleUI(isLoggedIn) {
         if (authContainer) authContainer.classList.remove('hidden');
         if (chatContainer) chatContainer.classList.add('hidden');
         const list = document.getElementById('message-list');
-        if (list) list.innerHTML = ''; // Clear chat on logout
+        if (list) list.innerHTML = '';
+        document.getElementById('sidebar-avatar').src = "https://ui-avatars.com/api/?name=User&background=2c363d&color=59dcb5";
     }
 }
 
@@ -106,7 +159,13 @@ async function loadMessages() {
     
     const { data, error } = await db
         .from('messages')
-        .select('*')
+        .select(`
+            *,
+            profiles (
+                username,
+                avatar_url
+            )
+        `)
         .order('created_at', { ascending: true });
 
     if (error) {
@@ -119,18 +178,21 @@ async function loadMessages() {
         list.innerHTML = data.map(msg => {
             const isMe = msg.user_id === currentUser.id;
             const bubbleClass = isMe ? 'message-sent ml-auto text-right' : 'message-received mr-auto text-left';
-            const sender = isMe ? 'You' : 'Agent';
+            
+            const senderName = msg.profiles?.username || 'Agent';
+            const defaultAvatar = `https://ui-avatars.com/api/?name=${senderName}&background=2c363d&color=59dcb5`;
+            const avatarImg = msg.profiles?.avatar_url || defaultAvatar;
             
             return `
-            <div class="flex w-full mb-4">
+            <div class="flex w-full mb-4 items-end ${isMe ? 'flex-row-reverse' : ''} gap-2">
+                <img src="${avatarImg}" class="w-8 h-8 rounded-full border border-[#3f4945] object-cover flex-shrink-0">
                 <div class="max-w-[75%] ${bubbleClass}">
-                    <div class="text-xs text-[#59dcb5] mb-1 font-bold">${sender}</div>
+                    <div class="text-xs text-[#59dcb5] mb-1 font-bold ${isMe ? 'hidden' : ''}">${senderName}</div>
                     <div class="text-white">${msg.content}</div>
                 </div>
             </div>`;
         }).join('');
         
-        // Auto-scroll to bottom
         list.scrollTop = list.scrollHeight;
     }
 }
@@ -140,12 +202,7 @@ window.sendMessage = async () => {
     const content = input.value.trim();
     if (!content || !db || !currentUser) return;
 
-    const { error } = await db.from('messages').insert([
-        { 
-            content: content,
-            user_id: currentUser.id 
-        }
-    ]);
+    const { error } = await db.from('messages').insert([{ content: content, user_id: currentUser.id }]);
     
     if (error) {
         console.error('Error saving message:', error);
