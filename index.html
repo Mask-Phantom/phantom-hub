@@ -13,8 +13,6 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #374045; border-radius: 4px; }
         .message-sent { background-color: #005c4b; border-radius: 8px 0px 8px 8px; padding: 6px 10px; }
         .message-received { background-color: #263238; border-radius: 0px 8px 8px 8px; padding: 6px 10px; }
-        
-        /* Smooth transitions for UI elements */
         .nav-btn { transition: all 0.3s ease; }
         .nav-active-chat { background-color: #2c363d; color: #59dcb5; border-radius: 12px; }
         .nav-active-pro { background-color: rgba(251, 191, 36, 0.15); color: #fbbf24; border-radius: 12px; }
@@ -27,16 +25,29 @@
             <h2 id="auth-title" class="text-2xl font-bold text-[#59dcb5] mb-6 text-center tracking-wide">Phantom Hub Login</h2>
             
             <input id="auth-email" type="email" placeholder="Email" class="w-full bg-[#2c363d] p-3 rounded-xl text-white mb-3 outline-none focus:ring-1 focus:ring-[#005c4b]">
-            <input id="auth-pass" type="password" placeholder="Password" class="w-full bg-[#2c363d] p-3 rounded-xl text-white mb-4 outline-none focus:ring-1 focus:ring-[#005c4b]">
+            
+            <div class="relative mb-3">
+                <input id="auth-pass" type="password" placeholder="Password" class="w-full bg-[#2c363d] p-3 rounded-xl text-white outline-none focus:ring-1 focus:ring-[#005c4b]">
+                <button onclick="togglePassword('auth-pass', 'eye-icon-1')" class="absolute right-3 top-3 text-gray-400 hover:text-white transition-colors">
+                    <span id="eye-icon-1" class="material-symbols-outlined">visibility</span>
+                </button>
+            </div>
             
             <div id="signup-extra" class="hidden">
+                <div class="relative mb-3">
+                    <input id="auth-pass-confirm" type="password" placeholder="Confirm Password" class="w-full bg-[#2c363d] p-3 rounded-xl text-white outline-none focus:ring-1 focus:ring-[#005c4b]">
+                    <button onclick="togglePassword('auth-pass-confirm', 'eye-icon-2')" class="absolute right-3 top-3 text-gray-400 hover:text-white transition-colors">
+                        <span id="eye-icon-2" class="material-symbols-outlined">visibility</span>
+                    </button>
+                </div>
+
                 <input id="auth-username" type="text" placeholder="Username (e.g., phantom)" class="w-full bg-[#2c363d] p-3 rounded-xl text-white mb-3 outline-none focus:ring-1 focus:ring-[#005c4b]">
                 <input id="auth-fullname" type="text" placeholder="Full Name" class="w-full bg-[#2c363d] p-3 rounded-xl text-white mb-3 outline-none focus:ring-1 focus:ring-[#005c4b]">
                 <input id="auth-role" type="text" placeholder="Role (e.g., Cybersecurity Student)" class="w-full bg-[#2c363d] p-3 rounded-xl text-white mb-6 outline-none focus:ring-1 focus:ring-[#005c4b]">
             </div>
 
-            <button id="login-btn" onclick="executeLogin()" class="w-full bg-[#005c4b] hover:bg-[#004236] text-white p-3 rounded-xl font-bold transition-colors">Log In</button>
-            <button id="signup-btn" onclick="executeSignup()" class="w-full bg-[#59dcb5] hover:bg-[#3fb897] text-[#0a151a] p-3 rounded-xl font-bold transition-colors hidden">Create Account</button>
+            <button id="login-btn" onclick="executeAuth(false)" class="w-full bg-[#005c4b] hover:bg-[#004236] text-white p-3 rounded-xl font-bold transition-colors">Log In</button>
+            <button id="signup-btn" onclick="executeAuth(true)" class="w-full bg-[#59dcb5] hover:bg-[#3fb897] text-[#0a151a] p-3 rounded-xl font-bold transition-colors hidden">Create Account</button>
             
             <p class="text-center mt-5 text-sm text-gray-400">
                 <button onclick="toggleAuthMode()" id="auth-toggle-text" class="hover:text-white transition-colors">Need an account? Sign up</button>
@@ -47,6 +58,13 @@
     <div id="chat-container" class="flex h-full w-full hidden">
         
         <aside class="w-[70px] bg-[#172127] flex flex-col items-center py-6 border-r border-[#3f4945] z-10 shadow-[4px_0_15px_rgba(0,0,0,0.2)]">
+            
+            <div class="mb-6 relative group cursor-pointer" onclick="document.getElementById('avatar-upload').click()" title="Change Profile Picture">
+                <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=User&background=2c363d&color=59dcb5" class="w-10 h-10 rounded-full border border-[#3f4945] object-cover group-hover:opacity-30 transition-opacity">
+                <span class="material-symbols-outlined absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 text-white pointer-events-none drop-shadow-md">photo_camera</span>
+            </div>
+            <input type="file" id="avatar-upload" class="hidden" accept="image/*" onchange="window.uploadAvatar(event)">
+
             <button id="nav-chat" onclick="showPage('chat')" class="nav-btn nav-active-chat p-3 mb-6 text-[#d9e4ec] hover:text-white w-12 h-12 flex items-center justify-center" title="Chat">
                 <span class="material-symbols-outlined text-2xl">chat</span>
             </button>
@@ -61,7 +79,6 @@
         </aside>
 
         <main class="flex-grow flex flex-col h-full relative bg-[#0a151a]">
-            
             <div id="chat" class="flex flex-col h-full w-full absolute inset-0 transition-opacity duration-300">
                 <header class="bg-[#172127] p-4 border-b border-[#3f4945] flex items-center justify-between shadow-sm">
                     <div class="flex items-center gap-3">
@@ -87,7 +104,6 @@
 
             <div id="pro-settings" class="hidden h-full w-full absolute inset-0 overflow-y-auto bg-gradient-to-br from-[#161124] via-[#0a151a] to-[#0a151a] p-10 transition-opacity duration-300">
                 <div class="max-w-4xl mx-auto">
-                    
                     <header class="mb-12 border-b border-gray-800 pb-6 flex items-center gap-4">
                         <span class="material-symbols-outlined text-5xl text-[#fbbf24]">workspace_premium</span>
                         <div>
@@ -95,31 +111,6 @@
                             <p class="text-gray-400 mt-1">Elevate your operational security and visibility.</p>
                         </div>
                     </header>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                        <div class="bg-[#1e1826] border border-gray-800 p-6 rounded-2xl hover:border-[#fbbf24]/50 transition-colors shadow-lg shadow-black/50">
-                            <span class="material-symbols-outlined text-[#fbbf24] mb-3 text-3xl">visibility_off</span>
-                            <h3 class="text-xl font-bold text-white mb-2">Incognito Mode</h3>
-                            <p class="text-gray-400 text-sm">Send messages autonomously. Your username and profile tags are completely stripped from the database.</p>
-                        </div>
-
-                        <div class="bg-[#1e1826] border border-gray-800 p-6 rounded-2xl hover:border-[#fbbf24]/50 transition-colors shadow-lg shadow-black/50">
-                            <span class="material-symbols-outlined text-[#fbbf24] mb-3 text-3xl">shield_locked</span>
-                            <h3 class="text-xl font-bold text-white mb-2">Advanced Obfuscation</h3>
-                            <p class="text-gray-400 text-sm">Apply client-side cryptographic hashing to your metadata before it ever reaches the server.</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-gradient-to-r from-[#fbbf24]/10 to-transparent border border-[#fbbf24]/20 p-8 rounded-2xl flex items-center justify-between">
-                        <div>
-                            <h2 class="text-2xl font-bold text-white mb-2">Ready to go dark?</h2>
-                            <p class="text-gray-400">Upgrade your account to unlock all premium security features.</p>
-                        </div>
-                        <button class="bg-gradient-to-r from-[#fbbf24] to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-black px-8 py-3 rounded-xl font-bold shadow-[0_0_15px_rgba(251,191,36,0.3)] transition-all transform hover:scale-105">
-                            Activate Pro
-                        </button>
-                    </div>
-
                 </div>
             </div>
         </main>
@@ -127,37 +118,26 @@
 
     <script src="script.js"></script>
     <script>
-        // Ensure Enter key works for sending messages
         document.getElementById('message-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') window.sendMessage();
         });
         
-        // Page switching helper with styling
         function showPage(id) {
-            // Toggle Views
             document.getElementById('chat').classList.toggle('hidden', id !== 'chat');
             document.getElementById('pro-settings').classList.toggle('hidden', id !== 'pro-settings');
 
-            // Toggle Navigation Button Styles
             const navChat = document.getElementById('nav-chat');
             const navPro = document.getElementById('nav-pro');
 
             if (id === 'chat') {
-                navChat.classList.add('nav-active-chat');
-                navChat.classList.remove('text-gray-400');
-                
-                navPro.classList.remove('nav-active-pro');
-                navPro.classList.add('text-gray-400');
+                navChat.classList.add('nav-active-chat'); navChat.classList.remove('text-gray-400');
+                navPro.classList.remove('nav-active-pro'); navPro.classList.add('text-gray-400');
             } else {
-                navPro.classList.add('nav-active-pro');
-                navPro.classList.remove('text-gray-400');
-                
-                navChat.classList.remove('nav-active-chat');
-                navChat.classList.add('text-[#d9e4ec]');
+                navPro.classList.add('nav-active-pro'); navPro.classList.remove('text-gray-400');
+                navChat.classList.remove('nav-active-chat'); navChat.classList.add('text-[#d9e4ec]');
             }
         }
 
-        // Frontend Auth UI logic
         let isSignUpMode = false;
         function toggleAuthMode() {
             isSignUpMode = !isSignUpMode;
@@ -168,20 +148,37 @@
             document.getElementById('auth-toggle-text').innerText = isSignUpMode ? 'Already have an account? Log in' : 'Need an account? Sign up';
         }
 
-        // Auth wrappers passing input data to script.js
-        function executeLogin() {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-pass').value;
-            window.logInUser(email, pass);
+        // New Password Toggle Logic
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.innerText = "visibility_off";
+            } else {
+                input.type = "password";
+                icon.innerText = "visibility";
+            }
         }
 
-        function executeSignup() {
+        // Unified Auth Execution with Validation
+        function executeAuth(isSignup) {
             const email = document.getElementById('auth-email').value;
             const pass = document.getElementById('auth-pass').value;
-            const username = document.getElementById('auth-username').value;
-            const name = document.getElementById('auth-fullname').value;
-            const role = document.getElementById('auth-role').value;
-            window.signUpUser(email, pass, username, name, role);
+            
+            if (isSignup) {
+                const confirmPass = document.getElementById('auth-pass-confirm').value;
+                if (pass !== confirmPass) {
+                    alert("Security mismatch: Passwords do not match.");
+                    return;
+                }
+                const username = document.getElementById('auth-username').value;
+                const name = document.getElementById('auth-fullname').value;
+                const role = document.getElementById('auth-role').value;
+                window.signUpUser(email, pass, username, name, role);
+            } else {
+                window.logInUser(email, pass);
+            }
         }
     </script>
 </body>
