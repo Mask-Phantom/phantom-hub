@@ -5,6 +5,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // 2. State & Initialization
 let db;
 let currentUser = null;
+let messageSubscription = null; // New: Tracks our WebSocket connection
 
 function initSupabase() {
     if (typeof supabase !== 'undefined') {
@@ -65,13 +66,11 @@ window.uploadAvatar = async (event) => {
     const file = event.target.files[0];
     if (!file || !currentUser) return;
 
-    // --- SECURITY CHECKS ---
-    const MAX_SIZE = 2 * 1024 * 1024; // 2MB in bytes
+    const MAX_SIZE = 2 * 1024 * 1024;
     const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
     if (!ALLOWED_TYPES.includes(file.type)) {
         alert('Invalid format. Please upload a JPEG, PNG, WEBP, or GIF.');
-        // Reset the file input so they can try again
         event.target.value = ''; 
         return;
     }
@@ -81,31 +80,26 @@ window.uploadAvatar = async (event) => {
         event.target.value = '';
         return;
     }
-    // --- END SECURITY CHECKS ---
 
     try {
         const fileExt = file.name.split('.').pop();
         const fileName = `${currentUser.id}-${Math.random()}.${fileExt}`;
 
-        // 1. Upload to the 'avatars' bucket
         const { error: uploadError } = await db.storage
             .from('avatars')
             .upload(fileName, file);
             
         if (uploadError) throw uploadError;
 
-        // 2. Get the public URL for the image
         const { data } = db.storage.from('avatars').getPublicUrl(fileName);
         const publicUrl = data.publicUrl;
 
-        // 3. Update the user's profile table with the new URL
         const { error: updateError } = await db.from('profiles')
             .update({ avatar_url: publicUrl })
             .eq('id', currentUser.id);
 
         if (updateError) throw updateError;
 
-        // 4. Update the UI
         document.getElementById('sidebar-avatar').src = publicUrl;
         loadMessages(); 
         
@@ -113,10 +107,31 @@ window.uploadAvatar = async (event) => {
         console.error('Avatar upload failed:', err.message);
         alert('Failed to upload profile picture.');
     } finally {
-        // Clear the input so the same file can be uploaded again if needed
         event.target.value = '';
     }
 };
+
+// --- NEW: Real-Time WebSocket Logic ---
+function subscribeToMessages() {
+    // Prevent creating duplicate listeners
+    if (messageSubscription) return; 
+
+    // Open a dedicated channel to listen to the messages table
+    messageSubscription = db.channel('public:messages')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+            console.log('Incoming live message detected:', payload);
+            loadMessages(); // Refresh the UI instantly when a new message arrives
+        })
+        .subscribe();
+}
+
+function unsubscribeFromMessages() {
+    if (messageSubscription) {
+        db.removeChannel(messageSubscription);
+        messageSubscription = null;
+    }
+}
+// --- END Real-Time Logic ---
 
 function setupAuthListener() {
     db.auth.onAuthStateChange(async (event, session) => {
@@ -130,9 +145,11 @@ function setupAuthListener() {
             }
             
             loadMessages();
+            subscribeToMessages(); // Activate live syncing when logged in
         } else {
             currentUser = null;
             toggleUI(false);
+            unsubscribeFromMessages(); // Kill the connection when logged out
         }
     });
 }
@@ -202,13 +219,14 @@ window.sendMessage = async () => {
     const content = input.value.trim();
     if (!content || !db || !currentUser) return;
 
+    // Notice we do NOT call loadMessages() here anymore! 
+    // We let the real-time listener detect the insert and refresh the UI automatically.
     const { error } = await db.from('messages').insert([{ content: content, user_id: currentUser.id }]);
     
     if (error) {
         console.error('Error saving message:', error);
     } else {
         input.value = '';
-        loadMessages();
     }
 };
 
