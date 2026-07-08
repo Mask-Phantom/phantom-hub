@@ -1,13 +1,16 @@
-// Initialize Supabase
-// Use your specific Project ID to form the URL
+// Initialize Supabase safely
 const supabaseUrl = 'https://iisalokmvwfhdjslasyb.supabase.co';
-const supabaseKey = 'sb_publishable_zx9nSgamhm1967J0qUMOkA_btbE09Aa'; // Replace this after regenerating
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseKey = 'YOUR_NEW_REGENERATED_API_KEY'; 
+
+// Check if already initialized to avoid the redeclaration error
+if (!window.supabase) {
+    window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+}
 
 // Test the connection
 async function testConnection() {
     try {
-        const { data, error } = await supabase.from('profiles').select('*').limit(1);
+        const { data, error } = await window.supabase.from('profiles').select('*').limit(1);
         if (error) throw error;
         console.log('Successfully connected to Supabase!', data);
     } catch (err) {
@@ -15,17 +18,14 @@ async function testConnection() {
     }
 }
 
-// Global sendMessage function for index.html
+// Global sendMessage function
 window.sendMessage = async () => {
     const input = document.getElementById('message-input');
     const content = input.value.trim();
     
     if (!content) return;
 
-    // For now, just logging to prove it works
     console.log('Attempting to send:', content);
-    
-    // We will hook this into the database in Phase 2
     input.value = '';
 };
 
