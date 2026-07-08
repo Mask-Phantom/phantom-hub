@@ -2,65 +2,51 @@
 <html class="dark" lang="en">
 <head>
     <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Communications Hub | WhatsApp Web</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <title>Phantom Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
     <style>
         body { background-color: #0a151a; color: #d9e4ec; font-family: 'Inter', sans-serif; overflow: hidden; }
-        .chat-bg-pattern { background-color: #0b141a; background-image: url("https://www.transparenttextures.com/patterns/cubes.png"); background-blend-mode: overlay; opacity: 0.4; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #374045; }
-        .message-sent { background-color: #005c4b; border-radius: 8px 0px 8px 8px; }
-        .message-received { background-color: #263238; border-radius: 0px 8px 8px 8px; }
-        .chat-bubble-shadow { box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13); }
+        .message-sent { background-color: #005c4b; border-radius: 8px 0px 8px 8px; padding: 6px 10px; }
+        .message-received { background-color: #263238; border-radius: 0px 8px 8px 8px; padding: 6px 10px; }
     </style>
 </head>
 <body class="flex h-screen w-screen overflow-hidden">
-    <!-- Sidebar (Left Rail) -->
-    <aside class="h-full w-[60px] flex flex-col items-center py-4 bg-[#172127] border-r border-[#3f4945] fixed left-0 top-0 z-50">
-        <div class="mb-8"><span class="material-symbols-outlined text-[#8bd5bf]">account_circle</span></div>
-        <nav class="flex flex-col gap-6 flex-grow">
-            <button class="bg-[#3c494f] rounded-full p-2"><span class="material-symbols-outlined text-[#aab7bf]" style="font-variation-settings: 'FILL' 1;">chat</span></button>
-        </nav>
+    <!-- Sidebar -->
+    <aside class="w-[60px] bg-[#172127] flex flex-col items-center py-4 border-r border-[#3f4945]">
+        <button onclick="showPage('chat')" class="p-2 mb-4"><span class="material-symbols-outlined">chat</span></button>
+        <!-- Pro Tab moved to sidebar -->
+        <button onclick="showPage('pro-settings')" class="p-2 mt-auto text-[#59dcb5]" title="Pro Features">
+            <span class="material-symbols-outlined">workspace_premium</span>
+        </button>
     </aside>
 
-    <!-- Chat List Section -->
-    <section class="ml-[60px] w-[350px] bg-[#131d23] flex flex-col border-r border-[#3f4945] shrink-0">
-        <header class="h-[60px] flex items-center justify-between px-4 bg-[#172127]">
-            <h1 class="font-bold text-lg text-[#d9e4ec]">Chats</h1>
-        </header>
-        <div id="chat-box" class="flex-grow overflow-y-auto custom-scrollbar">
-            <!-- Messages will load here -->
-        </div>
-    </section>
-
-    <!-- Main Chat Window -->
-    <main class="flex-grow flex flex-col relative h-full">
-        <header class="h-[60px] flex justify-between items-center px-6 bg-[#172127] border-b border-[#3f4945]">
-            <h2 class="font-bold text-[#d9e4ec]">Alice</h2>
-            <div class="flex items-center gap-2 px-3 py-1 bg-[#005c47]/30 rounded-full border border-[#59dcb5]/20">
-                <span class="material-symbols-outlined text-[#59dcb5] text-[18px]">incognito</span>
-                <span class="text-xs text-[#59dcb5] uppercase">Private Mode</span>
-            </div>
-        </header>
-        
-        <!-- Messages Area -->
-        <div class="flex-grow relative overflow-hidden">
-            <div class="absolute inset-0 chat-bg-pattern"></div>
-            <!-- The ID below matches your script.js -->
-            <div id="chat-box" class="relative z-10 h-full overflow-y-auto custom-scrollbar px-12 py-6 flex flex-col gap-2"></div>
+    <!-- Pages -->
+    <main class="flex-grow flex flex-col h-full relative">
+        <!-- Chat Page -->
+        <div id="chat" class="flex flex-col h-full">
+            <div id="chat-box" class="flex-grow overflow-y-auto p-6 space-y-4"></div>
+            <footer class="p-4 bg-[#172127]">
+                <input id="message-input" class="w-full bg-[#2c363d] p-3 rounded-xl text-white" placeholder="Type a message..." type="text"/>
+            </footer>
         </div>
 
-        <!-- Input Area -->
-        <footer class="h-[62px] bg-[#172127] flex items-center px-4 gap-4">
-            <input id="message-input" class="w-full bg-[#2c363d] border-none rounded-xl px-4 py-2 text-[#d9e4ec]" placeholder="Type an anonymous message..." type="text"/>
-        </footer>
+        <!-- Pro Settings Page (Hidden by default) -->
+        <div id="pro-settings" class="hidden p-10">
+            <h1 class="text-2xl text-[#59dcb5] font-bold">Pro Features</h1>
+            <p class="mt-4">Unlock Incognito Mode and advanced encryption.</p>
+            <button class="mt-4 bg-[#005c4b] px-4 py-2 rounded">Upgrade to Pro</button>
+        </div>
     </main>
-    
-    <!-- Link to your existing logic -->
+
     <script src="script.js"></script>
+    <script>
+        // Ensure input sends on Enter
+        document.getElementById('message-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') window.sendMessage();
+        });
+    </script>
 </body>
 </html>
