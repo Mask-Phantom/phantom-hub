@@ -1,6 +1,6 @@
 // 1. Configuration
 const SUPABASE_URL = 'https://iisalokmvwfhdjslasyb.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpc2Fsb2ttdndmaGRqc2xhc3liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0MTU4ODAsImV4cCI6MjA5ODk5MTg4MH0.ggtS6Sv8UTmB90ET8Nj8ZmpAMzM7nsz4Nb23FzEOwXI'; // Ensure your active key is here
+const SUPABASE_KEY = 'YOUR_NEW_REGENERATED_API_KEY'; // Ensure your active key is here
 
 // 2. State & Initialization
 let db;
@@ -18,30 +18,27 @@ function initSupabase() {
 window.signUpUser = async (email, password, username, fullName, roleTag) => {
     if (!db) return;
     try {
-        // Step A: Sign up user in Supabase Auth
-        const { data: authData, error: authError } = await db.auth.signUp({
-            email,
-            password,
-        });
-        if (authError) throw authError;
-
-        if (authData.user) {
-            // Step B: Create corresponding record in public.profiles table
-            const { error: profileError } = await db.from('profiles').insert([
-                {
-                    id: authData.user.id,
+        // We pass the extra profile data into the user's metadata so the SQL Trigger can catch it
+        const { data, error } = await db.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
                     username: username,
                     full_name: fullName,
-                    role_tag: roleTag,
-                    is_pro: false,
-                    updated_at: new Date().toISOString()
+                    role_tag: roleTag
                 }
-            ]);
-            if (profileError) throw profileError;
-            console.log('User registered and profile created successfully!');
-        }
+            }
+        });
+        
+        if (error) throw error;
+
+        // Notify the user that they must verify their email
+        alert("Registration successful! Please check your email to confirm your account before logging in.");
+        
     } catch (err) {
         console.error('Registration failed:', err.message);
+        alert('Registration failed: ' + err.message);
     }
 };
 
@@ -56,6 +53,7 @@ window.logInUser = async (email, password) => {
         console.log('Logged in successfully!');
     } catch (err) {
         console.error('Login failed:', err.message);
+        alert('Login failed: ' + err.message);
     }
 };
 
@@ -118,7 +116,22 @@ async function loadMessages() {
 
     const list = document.getElementById('message-list');
     if (list) {
-        list.innerHTML = data.map(msg => `<div><strong>${msg.user_id === currentUser.id ? 'You' : 'User'}:</strong> ${msg.content}</div>`).join('');
+        list.innerHTML = data.map(msg => {
+            const isMe = msg.user_id === currentUser.id;
+            const bubbleClass = isMe ? 'message-sent ml-auto text-right' : 'message-received mr-auto text-left';
+            const sender = isMe ? 'You' : 'Agent';
+            
+            return `
+            <div class="flex w-full mb-4">
+                <div class="max-w-[75%] ${bubbleClass}">
+                    <div class="text-xs text-[#59dcb5] mb-1 font-bold">${sender}</div>
+                    <div class="text-white">${msg.content}</div>
+                </div>
+            </div>`;
+        }).join('');
+        
+        // Auto-scroll to bottom
+        list.scrollTop = list.scrollHeight;
     }
 }
 
@@ -127,7 +140,6 @@ window.sendMessage = async () => {
     const content = input.value.trim();
     if (!content || !db || !currentUser) return;
 
-    // Attaching the currentUser.id guarantees fulfillment of the RLS checks
     const { error } = await db.from('messages').insert([
         { 
             content: content,
