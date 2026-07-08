@@ -2,8 +2,10 @@
 <html class="dark" lang="en">
 <head>
     <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Phantom Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
     <style>
         body { background-color: #0a151a; color: #d9e4ec; font-family: 'Inter', sans-serif; overflow: hidden; }
@@ -14,26 +16,21 @@
     </style>
 </head>
 <body class="flex h-screen w-screen overflow-hidden">
-    <!-- Sidebar -->
     <aside class="w-[60px] bg-[#172127] flex flex-col items-center py-4 border-r border-[#3f4945]">
         <button onclick="showPage('chat')" class="p-2 mb-4"><span class="material-symbols-outlined">chat</span></button>
-        <!-- Pro Tab moved to sidebar -->
         <button onclick="showPage('pro-settings')" class="p-2 mt-auto text-[#59dcb5]" title="Pro Features">
             <span class="material-symbols-outlined">workspace_premium</span>
         </button>
     </aside>
 
-    <!-- Pages -->
     <main class="flex-grow flex flex-col h-full relative">
-        <!-- Chat Page -->
         <div id="chat" class="flex flex-col h-full">
-            <div id="chat-box" class="flex-grow overflow-y-auto p-6 space-y-4"></div>
+            <div id="chat-box" class="flex-grow overflow-y-auto p-6 space-y-4 custom-scrollbar"></div>
             <footer class="p-4 bg-[#172127]">
                 <input id="message-input" class="w-full bg-[#2c363d] p-3 rounded-xl text-white" placeholder="Type a message..." type="text"/>
             </footer>
         </div>
 
-        <!-- Pro Settings Page (Hidden by default) -->
         <div id="pro-settings" class="hidden p-10">
             <h1 class="text-2xl text-[#59dcb5] font-bold">Pro Features</h1>
             <p class="mt-4">Unlock Incognito Mode and advanced encryption.</p>
@@ -43,10 +40,16 @@
 
     <script src="script.js"></script>
     <script>
-        // Ensure input sends on Enter
+        // Ensure Enter key works
         document.getElementById('message-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') window.sendMessage();
         });
+        
+        // Page switching helper
+        function showPage(id) {
+            document.getElementById('chat').classList.toggle('hidden', id !== 'chat');
+            document.getElementById('pro-settings').classList.toggle('hidden', id !== 'pro-settings');
+        }
     </script>
 </body>
 </html>
